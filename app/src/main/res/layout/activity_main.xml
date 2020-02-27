@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <LinearLayout
+            android:id="@+id/lyTitle"
+            android:orientation="vertical"
+            android:paddingTop="10dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/tv_title"
+                android:text="扫描条码"
+                android:textSize="10pt"
+                android:maxLines="1"
+                android:autoSizeMaxTextSize="15pt"
+                android:autoSizeMinTextSize="10pt"
+                android:autoSizeTextType="uniform"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <EditText
+                style="@style/MyEditText"
+                android:id="@+id/et_barcode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/tv_partname"
+                android:text="零件名称："
+                android:textSize="10pt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/tv_ptname"
+                android:textSize="15pt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="1dp"
+                android:background="#03A9F4"
+                android:layout_below="@+id/tv_about_title"
+                />
+            <TextView
+                android:id="@+id/tv_engine"
+                android:text="发动机型号："
+                android:textSize="10pt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/tv_enginetype"
+                android:textSize="15pt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="1dp"
+                android:background="#03A9F4"
+                android:layout_below="@+id/tv_about_title"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/lyMain"
+            android:background="@color/lybackgrounddefault"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <!--
+            <Button
+                android:id="@+id/btnScan"
+                android:text="重置扫描数据"
+                android:textSize="25pt"
+                android:maxLines="1"
+                android:autoSizeMaxTextSize="25pt"
+                android:autoSizeMinTextSize="15pt"
+                android:autoSizeTextType="uniform"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>-->
+            <TextView
+                android:id="@+id/tv_message"
+                android:text="条码合格"
+                android:textSize="40pt"
+                android:textColor="#000000"
+                android:gravity="center"
+                android:maxLines="1"
+                android:autoSizeMaxTextSize="40pt"
+                android:autoSizeMinTextSize="10pt"
+                android:autoSizeTextType="uniform"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+
+            <FrameLayout
+                android:id="@+id/state"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:orientation="vertical" >
+
+                <com.km.eda51_demo.WaveView
+                    android:id="@+id/wave_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/tv_red_state"
+                    android:text="点击取消"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/state_item_red"
+                    android:gravity="center"
+                    android:padding="2dp"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+            </FrameLayout>
+
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
