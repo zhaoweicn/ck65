@@ -7,20 +7,17 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.WorkbookSettings;
-import jxl.write.Label;
-import jxl.write.WritableSheet;
-import jxl.write.WritableWorkbook;
-import com.km.eda51_demo.util.ReadExcel;
-
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
@@ -148,7 +145,6 @@ public class ReadFile {
                 row.createCell(2).setCellValue("发动机型号");
                 row.createCell(3).setCellValue("扫描时间");
 
-                cur.moveToFirst();
                 while(cur.moveToNext()){
                     row = sheet.createRow(++rowIndex);
                     row.createCell(0).setCellValue(cur.getString(cur.getColumnIndex("partcode")));
@@ -179,4 +175,5 @@ public class ReadFile {
             return false;
         }
     }
+
 }

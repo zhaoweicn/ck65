@@ -6,22 +6,28 @@ import androidx.appcompat.widget.Toolbar;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.km.eda51_demo.util.ReadFile;
 import com.km.eda51_demo.util.SQLiteHelper;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
+import java.lang.reflect.Field;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -80,7 +86,50 @@ public class LoginActivity extends AppCompatActivity {
     public void onClickImportExcel(View view){
         File importFile = new File(importExcel, "BOM.xlsx");
         if (importFile.exists()){
-            new Important().execute();
+            AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+                    .setTitle("提示")
+                    .setMessage("你可以取消、添加、覆盖现有BOM资料！")
+                    .setPositiveButton("覆盖", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            DeletePart();
+                            new Important().execute();
+                        }
+                    })
+                    .setNegativeButton("增加", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            new Important().execute();
+                            dialog.dismiss();
+                        }
+                    })
+                    .setNeutralButton("取消", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    })
+                    .create();
+
+            dialog.show();
+            try{
+                Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
+                mAlert.setAccessible(true);
+                Object mAlertController = mAlert.get(dialog);
+                Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
+                mMessage.setAccessible(true);
+                TextView mMessageView = (TextView)mMessage.get(mAlertController);
+                mMessageView.setTextColor(Color.BLUE);
+                Field mTitle = mAlertController.getClass().getDeclaredField("mTitleView");
+                mTitle.setAccessible(true);
+                TextView mTitleView = (TextView)mTitle.get(mAlertController);
+                mTitleView.setTextColor(Color.BLUE);
+            }catch (IllegalAccessException e){
+                e.printStackTrace();
+            }catch (NoSuchFieldException e){
+                e.printStackTrace();
+            }
+
         }else{
             Toast.makeText(LoginActivity.this, "文件未找到", Toast.LENGTH_SHORT).show();
         }
@@ -88,7 +137,41 @@ public class LoginActivity extends AppCompatActivity {
 
     // 导出EXCEL文件
     public void onClickExportExcel(View view){
-        new OutImportant().execute();
+        AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+                .setTitle("提示")
+                .setMessage("导出数据后将会清空已扫描数据，是否继续？")
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        new OutImportant().execute();
+                    }
+                })
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                })
+                .create();
+
+        dialog.show();
+        try{
+            Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
+            mAlert.setAccessible(true);
+            Object mAlertController = mAlert.get(dialog);
+            Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
+            mMessage.setAccessible(true);
+            TextView mMessageView = (TextView)mMessage.get(mAlertController);
+            mMessageView.setTextColor(Color.BLUE);
+            Field mTitle = mAlertController.getClass().getDeclaredField("mTitleView");
+            mTitle.setAccessible(true);
+            TextView mTitleView = (TextView)mTitle.get(mAlertController);
+            mTitleView.setTextColor(Color.BLUE);
+        }catch (IllegalAccessException e){
+            e.printStackTrace();
+        }catch (NoSuchFieldException e){
+            e.printStackTrace();
+        }
     }
 
     // 导入数据对话框
@@ -113,13 +196,35 @@ public class LoginActivity extends AppCompatActivity {
             pDialog.dismiss();
             String result = "";
             if (imp) {
-                result = "读取成功!";
+                result = "数据导入成功!";
                 //Application.sharedHelper.put("save", true);
             } else {
-                result = "读取失败！";
+                result = "数据导入失败！";
             }
-            new AlertDialog.Builder(LoginActivity.this).setTitle("提示")
-                    .setMessage(result).setPositiveButton("确定", null).show();
+            showAlertDialog(result);
+//            AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+//                    .setTitle("提示")
+//                    .setMessage(result)
+//                    .setPositiveButton("确定",null)
+//                    .create();
+//            dialog.show();
+//            try{
+//                Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
+//                mAlert.setAccessible(true);
+//                Object mAlertController = mAlert.get(dialog);
+//                Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
+//                mMessage.setAccessible(true);
+//                TextView mMessageView = (TextView)mMessage.get(mAlertController);
+//                mMessageView.setTextColor(Color.BLUE);
+//                Field mTitle = mAlertController.getClass().getDeclaredField("mTitleView");
+//                mTitle.setAccessible(true);
+//                TextView mTitleView = (TextView)mTitle.get(mAlertController);
+//                mTitleView.setTextColor(Color.BLUE);
+//            }catch (IllegalAccessException e){
+//                e.printStackTrace();
+//            }catch (NoSuchFieldException e){
+//                e.printStackTrace();
+//            }
         }
 
         @Override
@@ -162,8 +267,7 @@ public class LoginActivity extends AppCompatActivity {
             } else {
                 result = "导出失败！";
             }
-            new AlertDialog.Builder(LoginActivity.this).setTitle("提示")
-                    .setMessage(result).setPositiveButton("确定", null).show();
+            showAlertDialog(result);
         }
 
         @Override
@@ -179,7 +283,36 @@ public class LoginActivity extends AppCompatActivity {
                 coursefile.delete();
             }
             boolean res = ReadFile.ExportExcel(exportExcel + "BOM比对结果.xlsx", LoginActivity.this, dbScan);
+            if (res){
+                DeleteScan();
+            }
             return res;
+        }
+    }
+
+    private void showAlertDialog(String result){
+        AlertDialog dialog = new AlertDialog.Builder(LoginActivity.this)
+                .setTitle("提示")
+                .setMessage(result)
+                .setPositiveButton("确定",null)
+                .create();
+        dialog.show();
+        try{
+            Field mAlert = AlertDialog.class.getDeclaredField("mAlert");
+            mAlert.setAccessible(true);
+            Object mAlertController = mAlert.get(dialog);
+            Field mMessage = mAlertController.getClass().getDeclaredField("mMessageView");
+            mMessage.setAccessible(true);
+            TextView mMessageView = (TextView)mMessage.get(mAlertController);
+            mMessageView.setTextColor(Color.BLUE);
+            Field mTitle = mAlertController.getClass().getDeclaredField("mTitleView");
+            mTitle.setAccessible(true);
+            TextView mTitleView = (TextView)mTitle.get(mAlertController);
+            mTitleView.setTextColor(Color.BLUE);
+        }catch (IllegalAccessException e){
+            e.printStackTrace();
+        }catch (NoSuchFieldException e){
+            e.printStackTrace();
         }
     }
 
@@ -236,5 +369,19 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
             return;
         }
+    }
+
+    // 清空扫描数据
+    public void DeleteScan(){
+        String DELETE_SCAN_SQL = "delete from scan";
+        SQLiteDatabase sqLiteDatabase = new SQLiteHelper(this, dbScan).getReadableDatabase();
+        sqLiteDatabase.execSQL(DELETE_SCAN_SQL);
+    }
+
+    // 清空BOM资料
+    private void DeletePart(){
+        String DELETE_SCAN_SQL = "delete from info";
+        SQLiteDatabase sqLiteDatabase = new SQLiteHelper(this, dbPart).getReadableDatabase();
+        sqLiteDatabase.execSQL(DELETE_SCAN_SQL);
     }
 }

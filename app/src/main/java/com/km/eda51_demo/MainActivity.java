@@ -8,13 +8,16 @@ import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.app.Activity;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.database.sqlite.SQLiteAbortException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.AsyncTask;
@@ -22,9 +25,13 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.provider.MediaStore;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -38,6 +45,8 @@ import com.km.eda51_demo.util.ReadFile;
 import com.km.eda51_demo.util.SQLiteHelper;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.security.Key;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -67,7 +76,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     private TextView tv_message = null;
     private LinearLayout lyMain=null;
     private LinearLayout lyTitle = null;
-    private EditText et_barcode = null;
+    private TextView et_barcode = null;
     private TextView tv_red_state = null;
     private FrameLayout state = null;
     private TextView tv_partname = null;
@@ -76,6 +85,8 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     private TextView tv_export = null;
     private TextView tv_engine = null;
     private TextView tv_enginetype = null;
+    private boolean IsAlert = false;
+    private Dialog mDialog;
 
     private static final int RED = 0xffff0000;
     private static final int BLUE = 0xff8080FF;
@@ -88,13 +99,58 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     private WaveView mWaveView;
     // 振动变量
     Vibrator vibrator;
+
+    public class MyDialog extends Dialog {
+        //    style引用style样式
+        public MyDialog(Context context, int width, int height, View layout, int style) {
+            super(context, style);
+            setContentView(layout);
+            Window window = getWindow();
+            WindowManager.LayoutParams params = window.getAttributes();
+            params.gravity = Gravity.CENTER;
+            window.setAttributes(params);
+        }
+    }
+
+    //点击按钮，弹出圆角对话框
+    public void showDialog(int layout, String msg) {
+        View view = getLayoutInflater().inflate(layout,null);
+        TextView tv_Message = view.findViewById(R.id.tv_Message);
+        TextView tv_Cancel = view.findViewById(R.id.tv_Cancel);
+        TextView tv_OK = view.findViewById(R.id.tv_OK);
+        tv_Message.setText(msg);
+        tv_Cancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mDialog.dismiss();
+            }
+        });
+        tv_OK.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //System.exit(0);
+                Intent intent = new Intent(MainActivity.this, LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
+            }
+        });
+
+        mDialog = new MyDialog(this, 0, 0, view, R.style.Theme_AppCompat_Dialog);
+        mDialog.setCancelable(true);
+        mDialog.show();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+//        File f = new File(getDatabasePath("scan.db").getPath());
+//        if (!f.exists()){
+//            Toast.makeText(this,"文件不存在", Toast.LENGTH_SHORT).show();
+//        }
+//        dbScan = getDatabasePath("scan.db").getPath();
         // 初始扫描条码数据库
-        InitDBScan();
+        //InitDBScan();
         myDatabase = new MyDatabase(MainActivity.this);
 
         InitScan();
@@ -140,9 +196,31 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
 
     @Override
     public boolean onKeyDown(int KeyCode, KeyEvent event){
-
-        if (KeyCode==KeyEvent.KEYCODE_BACK){
-            if (colorAnim!=null && colorAnim.isRunning()){
+//        switch (KeyCode){
+//            case KeyEvent.KEYCODE_F1:
+//            case KeyEvent.KEYCODE_BACK:
+//                if (colorAnim!=null && colorAnim.isRunning() && IsAlert){
+//                    //colorAnim = ObjectAnimator.ofInt(lymain, "backgroundColor", WHITE, WHITE);
+//                    //lyMain.setBackgroundColor(Color.WHITE);
+//                    Stop_Vibrator();
+//                    lyTitle.setVisibility(View.VISIBLE);
+//                    tv_message.setTextColor(Color.GREEN);
+//                    tv_message.setBackgroundColor(Color.WHITE);
+//                    colorAnim.reverse();
+//                    colorAnim.cancel();
+//                    colorAnim = null;
+//                    tv_message.setVisibility(View.VISIBLE);
+//                    tv_message.setText("扫描条码");
+//                    tv_message.setTextColor(Color.GREEN);
+//                    IsAlert = false;
+//                }else if (!IsAlert){
+//                    Intent intent = new Intent(MainActivity.this, LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+//                    startActivity(intent);
+//                }
+//                break;
+//        }
+        if ((KeyCode==KeyEvent.KEYCODE_F1) || (KeyCode==KeyEvent.KEYCODE_BACK) && IsAlert){
+            if (colorAnim!=null && colorAnim.isRunning() && IsAlert){
 //            colorAnim = ObjectAnimator.ofInt(lymain, "backgroundColor", WHITE, WHITE);
                 //lyMain.setBackgroundColor(Color.WHITE);
                 Stop_Vibrator();
@@ -155,10 +233,13 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
                 tv_message.setVisibility(View.VISIBLE);
                 tv_message.setText("扫描条码");
                 tv_message.setTextColor(Color.GREEN);
-            }else{
-                Intent intent = new Intent(MainActivity.this, LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(intent);
+                IsAlert = false;
             }
+            return true;
+        } else if (KeyCode==KeyEvent.KEYCODE_BACK && !IsAlert){
+                showDialog(R.layout.layout_dialog,"是否退出扫描？");
+//            Intent intent = new Intent(MainActivity.this, LoginActivity.class).setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+//            startActivity(intent);
         }
         return false;
     }
@@ -192,18 +273,16 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
         tv_message.setTextColor(Color.GREEN);
         lyMain = (LinearLayout) findViewById(R.id.lyMain);
         lyTitle = findViewById(R.id.lyTitle);
-        et_barcode = (EditText) findViewById(R.id.et_barcode);
+        et_barcode = findViewById(R.id.et_barcode);
         tv_red_state = (TextView) findViewById(R.id.tv_red_state);
         tv_red_state.setVisibility(View.GONE);
         tv_partname = findViewById(R.id.tv_partname);
         tv_ptname = findViewById(R.id.tv_ptname);
-        tv_ptname.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
-        tv_ptname.getPaint().setAntiAlias(true);
+        tv_ptname.setText("");
         tv_engine = findViewById(R.id.tv_engine);
         tv_engine.setText("发动机型号:");
         tv_enginetype = findViewById(R.id.tv_enginetype);
-        tv_enginetype.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);
-        tv_enginetype.getPaint().setAntiAlias(true);
+        tv_enginetype.setText("");
     }
 
     // 按钮事件
@@ -285,6 +364,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
                 // 1，判断是否为有效二维码
                 if (barcodeData.length()<13){
                     Start();
+                    IsAlert = true;
                     tv_message.setText("无效二维码");
                 }else{
                     String bar = barcodeData.substring(0, 13);
@@ -293,16 +373,20 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
                     // 2, 判断零件编号在BOM里是否存在
                     if (parts.size()==0){
                         Start();
+                        IsAlert = true;
                         tv_message.setText("零件编号不存在");
                     }else{
                         Stop();
+
                         tv_ptname.setText(parts.get(0).getPartname());
                         tv_enginetype.setText(parts.get(0).getEnginetype());
                         // 3，判断零件编号是否已经扫描过
                         if (isVerify(bar)){
                             Start();
-                            tv_message.setText("零件编号已经扫描");
+                            IsAlert = true;
+                            tv_message.setText("零件编号已经扫描\n按F1终止提示");
                         }else {
+                            IsAlert = false;
                             // 4，写入数据库
                             InsertBarcode(MainActivity.this, dbScan, parts);
                             tv_message.setText("扫描成功");
@@ -431,49 +515,53 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     }
 
     // 初始化盘点明细数据库
-    public void InitDBScan(){
-        sqLiteHelper = new SQLiteHelper(MainActivity.this, dbScan);
-        sdb_scan = sqLiteHelper.getReadableDatabase();
-        String DB_CREATE_TABLE_SCAN_SQL = "create table if not exists scan("
-                + "partcode varchar(100),"
-                + "partname varchar(100),"
-                + "enginetype varchar(100),"
-                + "scdate varchar(100)"
-                + ");";
-
-        try{
-            sdb_scan = SQLiteDatabase.openOrCreateDatabase(dbScan, null);
-            sdb_scan.execSQL(DB_CREATE_TABLE_SCAN_SQL);
-        }catch (SQLException e){
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-            return;
-        }
-    }
+//    public void InitDBScan(){
+//        sqLiteHelper = new SQLiteHelper(MainActivity.this, dbScan);
+//        sdb_scan = sqLiteHelper.getReadableDatabase();
+//        String DB_CREATE_TABLE_SCAN_SQL = "create table if not exists scan("
+//                + "partcode varchar(100),"
+//                + "partname varchar(100),"
+//                + "enginetype varchar(100),"
+//                + "scdate varchar(100)"
+//                + ");";
+//
+//        try{
+//            sdb_scan = SQLiteDatabase.openOrCreateDatabase(dbScan, null);
+//            sdb_scan.execSQL(DB_CREATE_TABLE_SCAN_SQL);
+//        }catch (SQLException e){
+//            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+//            return;
+//        }
+//    }
 
     // 判断零件号是否存在
     public static String IsScan(String barcode){
           return myDatabase.getPartName(barcode);
     }
 
-    // 判断零件编号昌否已经扫描
     // 判断零件编号是否已经扫描过
-    public boolean isVerify(String partcode){
+    public boolean isVerify(String barcode){
         boolean isverify = false;
 
         sqLiteHelper = new SQLiteHelper(MainActivity.this, dbScan);
-        sdb_part = sqLiteHelper.getReadableDatabase();
-        String SELECT_SCAN_SQL = "select *from scan where partcode=?";
-        Cursor cursor = sdb_part.rawQuery(SELECT_SCAN_SQL, new String[]{partcode});
-        if (cursor.getCount()==0){
-            cursor.close();
-            isverify = false;
-        }else{
-            cursor.moveToFirst();
-            cursor.close();
-            isverify = true;
+        sdb_scan = sqLiteHelper.getReadableDatabase();
+        try{
+            String SELECT_SCAN_SQL = "select *from scan where partcode=?";
+            Cursor cursor = sdb_scan.rawQuery(SELECT_SCAN_SQL, new String[]{barcode});
+            if (cursor.getCount()==0){
+                cursor.close();
+                isverify = false;
+            }else{
+                cursor.moveToFirst();
+                cursor.close();
+                isverify = true;
+            }
+        }catch (SQLiteException ex){
+            ex.printStackTrace();
+        }finally {
+            sdb_part.close();
+            sqLiteHelper.close();
         }
-        sdb_part.close();
-        sqLiteHelper.close();
 
         return isverify;
     }
@@ -499,13 +587,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
             return 0;
         }
 
-    }
-
-    // 清空扫描数据
-    public void DeleteScan(){
-        String DELETE_SCAN_SQL = "delete from scan";
-        SQLiteDatabase sqLiteDatabase = new SQLiteHelper(this, dbScan).getReadableDatabase();
-        sqLiteDatabase.execSQL(DELETE_SCAN_SQL);
     }
 
     // 获取零件名称、发动机型号

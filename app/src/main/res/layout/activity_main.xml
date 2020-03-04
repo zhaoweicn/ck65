@@ -28,11 +28,26 @@
                 android:autoSizeTextType="uniform"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/et_barcode"
+                android:textSize="10pt"
+                android:text=""
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="1dp"
+                android:background="#03A9F4"
+                android:layout_below="@+id/tv_about_title"
+                />
+            <!--
             <EditText
                 style="@style/MyEditText"
                 android:id="@+id/et_barcode"
+                android:textSize="10pt"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"/>-->
             <TextView
                 android:id="@+id/tv_partname"
                 android:text="零件名称："
@@ -41,12 +56,13 @@
                 android:layout_height="wrap_content"/>
             <TextView
                 android:id="@+id/tv_ptname"
-                android:textSize="15pt"
+                android:textSize="10pt"
+                android:text="123456"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="1dp"
                 android:layout_marginTop="1dp"
                 android:background="#03A9F4"
                 android:layout_below="@+id/tv_about_title"
@@ -59,12 +75,13 @@
                 android:layout_height="wrap_content"/>
             <TextView
                 android:id="@+id/tv_enginetype"
-                android:textSize="15pt"
+                android:textSize="10pt"
+                android:text="12334234"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <View
                 android:layout_width="match_parent"
-                android:layout_height="2dp"
+                android:layout_height="1dp"
                 android:layout_marginTop="1dp"
                 android:background="#03A9F4"
                 android:layout_below="@+id/tv_about_title"
@@ -95,7 +112,7 @@
                 android:textSize="40pt"
                 android:textColor="#000000"
                 android:gravity="center"
-                android:maxLines="1"
+                android:maxLines="2"
                 android:autoSizeMaxTextSize="40pt"
                 android:autoSizeMinTextSize="10pt"
                 android:autoSizeTextType="uniform"
