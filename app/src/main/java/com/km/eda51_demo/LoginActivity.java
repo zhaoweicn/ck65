@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,11 +41,23 @@ public class LoginActivity extends AppCompatActivity {
     private SQLiteDatabase sdb_part;
     private SQLiteDatabase sdb_scan;
     private SQLiteHelper sqLiteHelper;
+    private TextView tv_inventory = null;
+    private TextView tv_import = null;
+    private TextView tv_export = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        tv_inventory = findViewById(R.id.tv_inventory);
+        tv_inventory.setText("零件二维码扫描 [F1]");
+
+        tv_import = findViewById(R.id.tv_import);
+        tv_import.setText("BOM资料导入 [F2]");
+
+        tv_export = findViewById(R.id.tv_export);
+        tv_export.setText("扫描数据导出 [F3]");
 
         // EXCEL文件路径
         importExcel = Environment.getExternalStorageDirectory() + File.separator;
@@ -76,8 +89,19 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int KeyCode, KeyEvent event){
-        if (KeyCode==KeyEvent.KEYCODE_BACK){
-            System.exit(0);
+        switch (KeyCode){
+            case KeyEvent.KEYCODE_F1:
+                onClickInvActivity(tv_inventory);
+                break;
+            case KeyEvent.KEYCODE_F2:
+                onClickImportExcel(tv_import);
+                break;
+            case KeyEvent.KEYCODE_F3:
+                onClickExportExcel(tv_export);
+                break;
+            case KeyEvent.KEYCODE_BACK:
+                System.exit(0);
+                break;
         }
         return false;
     }

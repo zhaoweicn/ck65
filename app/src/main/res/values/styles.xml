@@ -7,13 +7,10 @@
         <item name="colorPrimaryDark">@color/md_blue_grey_800</item>
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:colorForeground">@color/md_blue_grey_50</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
     </style>
-
     <!-- EditText下划线颜色 -->
     <style name="MyEditText" parent="Theme.AppCompat.Light">
         <item name="colorControlNormal">#03A9F4</item>

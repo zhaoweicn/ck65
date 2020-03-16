@@ -7,6 +7,7 @@ import androidx.interpolator.view.animation.LinearOutSlowInInterpolator;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -76,15 +77,25 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     private TextView tv_message = null;
     private LinearLayout lyMain=null;
     private LinearLayout lyTitle = null;
-    private TextView et_barcode = null;
+    private TextView tv_partcode = null;
     private TextView tv_red_state = null;
     private FrameLayout state = null;
-    private TextView tv_partname = null;
+
     private TextView tv_ptname = null;
     private TextView tv_inventory = null;
     private TextView tv_export = null;
-    private TextView tv_engine = null;
+
     private TextView tv_enginetype = null;
+    // 零件图号
+    private TextView tv_title = null;
+    // 零件名称
+    private TextView tv_partname = null;
+    // 发动机型号
+    private TextView tv_engine = null;
+
+    private boolean IsScan = false;
+    private boolean engineIsScan = false;
+    private boolean pcodeIsScan = false;
     private boolean IsAlert = false;
     private Dialog mDialog;
 
@@ -143,20 +154,10 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-//        File f = new File(getDatabasePath("scan.db").getPath());
-//        if (!f.exists()){
-//            Toast.makeText(this,"文件不存在", Toast.LENGTH_SHORT).show();
-//        }
-//        dbScan = getDatabasePath("scan.db").getPath();
-        // 初始扫描条码数据库
-        //InitDBScan();
         myDatabase = new MyDatabase(MainActivity.this);
 
         InitScan();
 
-        // create the AidcManager providing a Context and a
-        // CreatedCallback implementation.
         AidcManager.create(this, new AidcManager.CreatedCallback() {
             @Override
             public void onCreated(AidcManager aidcManager) {
@@ -230,9 +231,6 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
                 colorAnim.reverse();
                 colorAnim.cancel();
                 colorAnim = null;
-                tv_message.setVisibility(View.VISIBLE);
-                tv_message.setText("扫描条码");
-                tv_message.setTextColor(Color.GREEN);
                 IsAlert = false;
             }
             return true;
@@ -266,21 +264,34 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
 
     }
 
+    @SuppressLint("ResourceAsColor")
     private void InitScan(){
-        textView=(TextView)findViewById(R.id.tv_title);
-        tv_message = (TextView) findViewById(R.id.tv_message);
-        tv_message.setText("扫描条码");
-        tv_message.setTextColor(Color.GREEN);
-        lyMain = (LinearLayout) findViewById(R.id.lyMain);
+        lyMain = findViewById(R.id.lyMain);
         lyTitle = findViewById(R.id.lyTitle);
-        et_barcode = findViewById(R.id.et_barcode);
-        tv_red_state = (TextView) findViewById(R.id.tv_red_state);
-        tv_red_state.setVisibility(View.GONE);
-        tv_partname = findViewById(R.id.tv_partname);
-        tv_ptname = findViewById(R.id.tv_ptname);
-        tv_ptname.setText("");
+
         tv_engine = findViewById(R.id.tv_engine);
         tv_engine.setText("发动机型号:");
+        tv_engine.setTextColor(R.color.md_orange_900);
+
+        tv_title = findViewById(R.id.tv_title);
+        tv_title.setText("零件图号:");
+        tv_title.setTextColor(R.color.md_orange_900);
+
+        tv_partname = findViewById(R.id.tv_partname);
+        tv_partname.setText("零件名称:");
+        tv_partname.setTextColor(R.color.md_orange_900);
+
+        tv_message = findViewById(R.id.tv_message);
+        tv_message.setText("扫描发动机型号");
+        tv_message.setTextColor(Color.GREEN);
+
+        tv_partcode = findViewById(R.id.tv_partcode);
+        tv_red_state = (TextView) findViewById(R.id.tv_red_state);
+        tv_red_state.setVisibility(View.GONE);
+
+        tv_ptname = findViewById(R.id.tv_ptname);
+        tv_ptname.setText("");
+
         tv_enginetype = findViewById(R.id.tv_enginetype);
         tv_enginetype.setText("");
     }
@@ -355,66 +366,115 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
             e.printStackTrace();
         }
         // TODO Auto-generated method stub
-        runOnUiThread(new Runnable() {
+        runOnUiThread(new Runnable() { // function begin
             @Override
             public void run() {
+                List<Part> parts = null;
+                String strEngine = "";
+                String strCode = "";
                 String barcodeData = event.getBarcodeData();
-                //textView.setText(barcodeData);
-                et_barcode.setText(barcodeData);
-                // 1，判断是否为有效二维码
-                if (barcodeData.length()<13){
-                    Start();
-                    IsAlert = true;
-                    tv_message.setText("无效二维码");
-                }else{
-                    String bar = barcodeData.substring(0, 13);
-                    et_barcode.setText(bar);
-                    List<Part> parts = getInfo(bar);
-                    // 2, 判断零件编号在BOM里是否存在
+                //et_barcode.setText(barcodeData);
+                // 1, 先判断是否为有效发动机型号
+                if (!engineIsScan){ // begin ifelse 3
+//                    if (barcodeData.trim().length()!=7){
+//                        Start();
+//                        IsAlert = true;
+//                        engineIsScan = false;
+//                        tv_enginetype.setText(barcodeData);
+//                        tv_partcode.setText("");
+//                        tv_ptname.setText("");
+//                        tv_message.setText("无效发动机二维码\n" + barcodeData);
+//                        return;
+//                    }
+                    // 2, 判断发动机型号是否存在
+                    parts = getInfo(barcodeData.substring(0, 7));
                     if (parts.size()==0){
                         Start();
                         IsAlert = true;
-                        tv_message.setText("零件编号不存在");
-                    }else{
+                        engineIsScan = false;
+                        tv_enginetype.setText(barcodeData);
+                        tv_partcode.setText("");
+                        tv_ptname.setText("");
+                        tv_message.setText("发动机型号不存在\n" + barcodeData);
+                        return;
+                    }
+                    strEngine = parts.get(0).getEnginetype();
+                    tv_enginetype.setText(strEngine);
+                    tv_partcode.setText("");
+                    tv_ptname.setText("");
+                    tv_message.setText("扫描零件图号");
+                    engineIsScan = true;
+                }else{ // begin ifelse 2
+                    strEngine = tv_enginetype.getText().toString();
+                    // 3, 判断是否为有效零件图号
+                    if (barcodeData.length()!=13){
+                        Start();
+                        IsAlert = true;
+                        pcodeIsScan = false;
+                        tv_partcode.setText(barcodeData);
+                        tv_ptname.setText("");
+                        tv_message.setText("无效零件图号二维码\n"+barcodeData);
+                        return;
+                    }
+                    strCode = barcodeData.trim();
+                    tv_partcode.setText(strCode);
+                    parts = getInfo(strEngine);
+                    // 4, 判断零件编号是否存在
+                    String strPartname = parts.get(0).getPartname();
+                    if (strPartname.isEmpty()){
+                        Start();
+                        IsAlert = true;
+                        pcodeIsScan = false;
+                        tv_partcode.setText(barcodeData);
+                        tv_ptname.setText("");
+                        tv_message.setText("零件图号不存在\n"+barcodeData);
+                        return;
+                    }
+                    tv_ptname.setText(strPartname);
+                    pcodeIsScan = true;
+                    if (engineIsScan && pcodeIsScan){  // begin ifelse 1
                         Stop();
-
-                        tv_ptname.setText(parts.get(0).getPartname());
-                        tv_enginetype.setText(parts.get(0).getEnginetype());
-                        // 3，判断零件编号是否已经扫描过
-                        if (isVerify(bar)){
+                        // 4, 判断零件编号是否已经扫描过
+                        if (isVerify(strCode, strEngine)){
                             Start();
                             IsAlert = true;
-                            tv_message.setText("零件编号已经扫描\n按F1终止提示");
+                            tv_message.setText("当前发动机的零件编号已经扫描\n按F1终止提示");
                         }else {
                             IsAlert = false;
-                            // 4，写入数据库
-                            InsertBarcode(MainActivity.this, dbScan, parts);
-                            tv_message.setText("扫描成功");
+                            // 5, 写入数据库
+                            List<Part> partList = new ArrayList<Part>();
+                            Part part = new Part();
+                            part.setPartcode(strCode);
+                            part.setPartname(strPartname);
+                            part.setEnginetype(strEngine);
+                            partList.add(part);
+                            InsertBarcode(MainActivity.this, dbScan, partList);
+                            tv_message.setText("开始新的扫描\n扫描发动机型号");
+//                            tv_enginetype.setText("");
+//                            tv_partcode.setText("");
+//                            tv_ptname.setText("");
                         }
-                    }
-                }
-//                // 判断是否已经扫描
-//                if (IsScan(barcodeData)){
-//                    //tv_message.setVisibility(View.GONE);
-//                    waveState();
-////                    Start();
-////                    Start_Vibrator();
-//                    tv_message.setText("条码重复");
-//                    tv_message.setTextColor(Color.RED);
-//                }else{
-//                    InsertBarcode(MainActivity.this, dbScan, barcodeData);
-//                    tv_message.setText("扫描成功");
-//                    tv_message.setTextColor(Color.GREEN);
-//                }
-
-            }
+                        engineIsScan = false;
+                        pcodeIsScan = false;
+                    } //end ifelse1
+                } // end ifelse 2
+            } // function end
         });
     }
 
     @Override
     public void onTriggerEvent(TriggerStateChangeEvent event) {
         // TODO Auto-generated method stub
-
+        if (!engineIsScan){
+            tv_message.setVisibility(View.VISIBLE);
+            tv_message.setText("扫描发动机型号");
+            tv_message.setTextColor(Color.GREEN);
+        }
+        if (engineIsScan){
+            tv_message.setVisibility(View.VISIBLE);
+            tv_message.setText("扫描零件图号");
+            tv_message.setTextColor(Color.GREEN);
+        }
     }
 
     @Override
@@ -422,7 +482,16 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
         // TODO Auto-generated method stub
         try {
             barcodeReader.softwareTrigger(false);
-            tv_message.setText("扫描条码");
+            if (!engineIsScan){
+                tv_message.setVisibility(View.VISIBLE);
+                tv_message.setText("扫描发动机型号");
+                tv_message.setTextColor(Color.GREEN);
+            }
+            if (engineIsScan){
+                tv_message.setVisibility(View.VISIBLE);
+                tv_message.setText("扫描零件图号");
+                tv_message.setTextColor(Color.GREEN);
+            }
             Stop();
             Stop_Vibrator();
         } catch (ScannerNotClaimedException e) {
@@ -476,10 +545,16 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
         if (mWaveView!=null){
             mWaveView.stop();
         }
-        et_barcode.setText("");
-        tv_red_state.setVisibility(View.GONE);
-        tv_message.setText("扫描条码");
-        tv_message.setTextColor(Color.GREEN);
+        if (!engineIsScan){
+            tv_message.setVisibility(View.VISIBLE);
+            tv_message.setText("扫描发动机型号");
+            tv_message.setTextColor(Color.GREEN);
+        }
+        if (engineIsScan){
+            tv_message.setVisibility(View.VISIBLE);
+            tv_message.setText("扫描零件图号");
+            tv_message.setTextColor(Color.GREEN);
+        }
     }
 
     private void showToastMsg(String msg){
@@ -540,19 +615,18 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     }
 
     // 判断零件编号是否已经扫描过
-    public boolean isVerify(String barcode){
+    public boolean isVerify(String pcode, String engine){
         boolean isverify = false;
 
         sqLiteHelper = new SQLiteHelper(MainActivity.this, dbScan);
         sdb_scan = sqLiteHelper.getReadableDatabase();
         try{
-            String SELECT_SCAN_SQL = "select *from scan where partcode=?";
-            Cursor cursor = sdb_scan.rawQuery(SELECT_SCAN_SQL, new String[]{barcode});
+            String SELECT_SCAN_SQL = "select *from scan where partcode=? and enginetype=?";
+            Cursor cursor = sdb_scan.rawQuery(SELECT_SCAN_SQL, new String[]{pcode, engine});
             if (cursor.getCount()==0){
                 cursor.close();
                 isverify = false;
             }else{
-                cursor.moveToFirst();
                 cursor.close();
                 isverify = true;
             }
@@ -592,7 +666,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
     // 获取零件名称、发动机型号
     public List<Part> getInfo(String barcode){
         List<Part> partList = new ArrayList<>();
-        String GET_INFO_SQL = "select partcode, partname, enginetype from info where partcode=?";
+        String GET_INFO_SQL = "select partcode, partname, enginetype from info where enginetype=?";
         try{
             sqLiteHelper = new SQLiteHelper(MainActivity.this, dbPart);
             sdb_part = sqLiteHelper.getReadableDatabase();

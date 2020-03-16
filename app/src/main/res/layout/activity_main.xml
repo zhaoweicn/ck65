@@ -19,9 +19,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/tv_title"
-                android:text="扫描条码"
+                android:id="@+id/tv_engine"
+                android:text="发动机型号："
                 android:textSize="10pt"
+                android:textColor="@color/md_indigo_900"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <TextView
+                android:id="@+id/tv_enginetype"
+                android:textSize="10pt"
+                android:text=""
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="1dp"
+                android:background="#03A9F4"
+                android:layout_below="@+id/tv_about_title"
+                />
+            <TextView
+                android:id="@+id/tv_title"
+                android:text="零件图号"
+                android:textSize="10pt"
+                android:textColor="@color/md_indigo_900"
                 android:maxLines="1"
                 android:autoSizeMaxTextSize="15pt"
                 android:autoSizeMinTextSize="10pt"
@@ -29,7 +50,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <TextView
-                android:id="@+id/et_barcode"
+                android:id="@+id/tv_partcode"
                 android:textSize="10pt"
                 android:text=""
                 android:layout_width="match_parent"
@@ -52,12 +73,13 @@
                 android:id="@+id/tv_partname"
                 android:text="零件名称："
                 android:textSize="10pt"
+                android:textColor="@color/md_indigo_900"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <TextView
                 android:id="@+id/tv_ptname"
                 android:textSize="10pt"
-                android:text="123456"
+                android:text=""
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
             <View
@@ -67,25 +89,7 @@
                 android:background="#03A9F4"
                 android:layout_below="@+id/tv_about_title"
                 />
-            <TextView
-                android:id="@+id/tv_engine"
-                android:text="发动机型号："
-                android:textSize="10pt"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:id="@+id/tv_enginetype"
-                android:textSize="10pt"
-                android:text="12334234"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="1dp"
-                android:background="#03A9F4"
-                android:layout_below="@+id/tv_about_title"
-                />
+
         </LinearLayout>
 
         <LinearLayout
@@ -108,14 +112,11 @@
                 android:layout_height="wrap_content"/>-->
             <TextView
                 android:id="@+id/tv_message"
-                android:text="条码合格"
-                android:textSize="40pt"
+                android:text="开始扫描"
+                android:textSize="45dp"
                 android:textColor="#000000"
                 android:gravity="center"
                 android:maxLines="2"
-                android:autoSizeMaxTextSize="40pt"
-                android:autoSizeMinTextSize="10pt"
-                android:autoSizeTextType="uniform"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
 
