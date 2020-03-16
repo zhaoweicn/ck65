@@ -407,21 +407,20 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
                 }else{ // begin ifelse 2
                     strEngine = tv_enginetype.getText().toString();
                     // 3, 判断是否为有效零件图号
-                    if (barcodeData.length()!=13){
-                        Start();
-                        IsAlert = true;
-                        pcodeIsScan = false;
-                        tv_partcode.setText(barcodeData);
-                        tv_ptname.setText("");
-                        tv_message.setText("无效零件图号二维码\n"+barcodeData);
-                        return;
-                    }
-                    strCode = barcodeData.trim();
+//                    if (barcodeData.length()!=13){
+//                        Start();
+//                        IsAlert = true;
+//                        pcodeIsScan = false;
+//                        tv_partcode.setText(barcodeData);
+//                        tv_ptname.setText("");
+//                        tv_message.setText("无效零件图号二维码\n"+barcodeData);
+//                        return;
+//                    }
+                    strCode = barcodeData.substring(0, 13);
                     tv_partcode.setText(strCode);
                     parts = getInfo(strEngine);
                     // 4, 判断零件编号是否存在
-                    String strPartname = parts.get(0).getPartname();
-                    if (strPartname.isEmpty()){
+                    if (parts.size()==0){
                         Start();
                         IsAlert = true;
                         pcodeIsScan = false;
@@ -430,6 +429,7 @@ public class MainActivity extends AppCompatActivity implements BarcodeReader.Bar
                         tv_message.setText("零件图号不存在\n"+barcodeData);
                         return;
                     }
+                    String strPartname = parts.get(0).getPartname();
                     tv_ptname.setText(strPartname);
                     pcodeIsScan = true;
                     if (engineIsScan && pcodeIsScan){  // begin ifelse 1
